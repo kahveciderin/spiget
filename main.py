@@ -5,6 +5,7 @@ from os import walk, path, mkdir
 import sys
 import tarfile
 import base64
+import shutil
 
 def managePackageFile(name="", version=0, conf=""):
     open("spigetcli.json", "a").close()
@@ -95,5 +96,6 @@ def main():
             with open("$tmp/{0}.tgz".format(ip), "rb") as config:
                 config_bp = base64.b64encode(config.read()).decode('utf-8')
             managePackageFile(ip, -1, config_bp)
+        shutil.rmtree('$tmp/')
 if __name__ == "__main__":
     main()
