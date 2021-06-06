@@ -10,5 +10,9 @@ if __name__ == "__main__":
         if(len(sys.argv) < 3):
             print("I need to know what I am supposed to install!")
             exit(1)
-        installreq = json.loads(requests.get("https://api.spiget.org/v2/search/resources/" + sys.argv[2]).content)
+        try:
+            installreq = json.loads(requests.get("https://api.spiget.org/v2/search/resources/" + sys.argv[2]).content)
+        except:
+            print("Error occured while fetching the API.")
+            exit(1)
         print(installreq) # for debug only. TODO: remove
