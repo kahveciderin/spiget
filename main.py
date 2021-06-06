@@ -2,7 +2,7 @@ import json
 import requests
 import sys
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) < 2:
         print("Usage: haha no")
         exit(-1)
@@ -11,8 +11,24 @@ if __name__ == "__main__":
             print("I need to know what I am supposed to install!")
             exit(1)
         try:
-            installreq = json.loads(requests.get("https://api.spiget.org/v2/search/resources/" + sys.argv[2]).content)
+            installreq = json.loads(requests.get("https://api.spiget.org/v2/search/resources/" + sys.argv[2] + "?field=name&size=1").content)
         except:
             print("Error occured while fetching the API.")
             exit(1)
-        print(installreq) # for debug only. TODO: remove
+        if len(installreq) != 1:
+            print("Could not find package {0}".format(sys.argv[2]))
+            exit(1)
+        try:
+            with open("plugins/" + installreq[0]["name"] + ".jar", "wb") as jar:
+                jar.write(requests.get("https://spigot.com/" + installreq[0]["file"]["url"]).content)
+        except Exception as e:
+            print(e)
+            print(installreq[0])
+            print("""Error occured while downloading plugin. Check that
+1) you are in a minecraft server folder
+2) you have a plugins/ folder on your current working directory
+3) spigot isn't down""")
+            exit(1)
+
+if __name__ == "__main__":
+    main()
