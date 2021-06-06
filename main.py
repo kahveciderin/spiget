@@ -2,6 +2,21 @@ import json
 import requests
 import sys
 
+def managePackageFile(name="", version=0):
+    open("spigetcli.json", "w").close()
+    with open("spigetcli.json", "r+") as pckfile:
+        pckcontents = json.loads(pckfile.read() or "{}")
+        if "name" not in pckcontents:
+            pckcontents["name"] = "A Minecraft Server"
+        if "plugins" not in pckcontents:
+            pckcontents["plugins"] = []
+        if(name != ""):
+            if name not in pckcontents["plugins"]:
+                pckcontents["plugins"].append({name: {"version": version}})
+            else:
+                pckcontents["plugins"]["name"]["version"] = {"version": version}
+        pckfile.write(json.dumps(pckcontents))
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: haha no")
@@ -20,10 +35,10 @@ def main():
             exit(1)
         try:
             with open("plugins/" + installreq[0]["name"] + ".jar", "wb") as jar:
-                jar.write(requests.get("https://spigot.com/" + installreq[0]["file"]["url"]).content)
+                managePackageFile(installreq[0]["name"], installreq[0]["version"]["id"])
+                jar.write(requests.get("https://api.spiget.org/v2/resources/{0}/download".format(installreq[0]["id"])).content)
         except Exception as e:
             print(e)
-            print(installreq[0])
             print("""Error occured while downloading plugin. Check that
 1) you are in a minecraft server folder
 2) you have a plugins/ folder on your current working directory
