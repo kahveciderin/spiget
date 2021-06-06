@@ -1,22 +1,26 @@
 #!/usr/bin/python3
 import json
 import requests
-from os import path
+from os import walk, path, mkdir
 import sys
+import tarfile
+import base64
 
-def managePackageFile(name="", version=0):
-    open("spigetcli.json", "w").close()
+def managePackageFile(name="", version=0, conf=""):
+    open("spigetcli.json", "a").close()
     with open("spigetcli.json", "r+") as pckfile:
         pckcontents = json.loads(pckfile.read() or "{}")
+        pckfile.truncate(0)
+        pckfile.seek(0)
         if "name" not in pckcontents:
             pckcontents["name"] = "A Minecraft Server"
         if "plugins" not in pckcontents:
             pckcontents["plugins"] = []
         if(name != ""):
             if name not in pckcontents["plugins"]:
-                pckcontents["plugins"].append({name: {"version": version}})
+                pckcontents["plugins"].append({name: {"version": version, "conf": conf}})
             else:
-                pckcontents["plugins"]["name"]["version"] = {"version": version}
+                pckcontents["plugins"]["name"]["version"] = {"version": version, "conf": conf}
         pckfile.write(json.dumps(pckcontents))
 
 def downloadPlugin(pluginName):
@@ -68,7 +72,7 @@ def main():
             print("I need to know what I am supposed to install!")
             exit(1)
         downloadPlugin(sys.argv[2])
-    if sys.argv[1] == "ci":
+    if sys.argv[1] == "ci": # complete install
         if not path.exists("spigetcli.json"):
             print("Cannot find spigetcli.json")
             exit(1)
@@ -79,5 +83,17 @@ def main():
             if "plugins" in pckcontents:
                 for plugin in pckcontents["plugins"]:
                     downloadPlugin([*plugin][0])
+    if sys.argv[1] == "cb": # complete backup
+        for ip in next(walk('plugins/'))[1]:
+            if(ip == "update" or ip == "Updater" or ip == "bStats"):
+                continue
+            if not path.exists("$tmp/"):
+                mkdir("$tmp/")
+            with tarfile.open("$tmp/{0}.tgz".format(ip), "w:gz") as tar:
+                tar.add("plugins/{0}".format(ip), arcname=path.basename("plugins/{0}".format(ip)))
+            config_bp = ""
+            with open("$tmp/{0}.tgz".format(ip), "rb") as config:
+                config_bp = base64.b64encode(config.read()).decode('utf-8')
+            managePackageFile(ip, -1, config_bp)
 if __name__ == "__main__":
     main()

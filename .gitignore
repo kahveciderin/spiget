@@ -2,3 +2,5 @@ plugins/
 *.jar
 deleteme.json
 spigetcli.json
+$tmp/
+$tmp/*
